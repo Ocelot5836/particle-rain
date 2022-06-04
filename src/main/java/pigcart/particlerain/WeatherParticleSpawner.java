@@ -2,6 +2,7 @@ package pigcart.particlerain;
 
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
@@ -19,9 +20,10 @@ public final class WeatherParticleSpawner {
     private WeatherParticleSpawner() {
     }
 
-    private static void spawnParticle(ClientLevel level, Biome biome, double x, double y, double z) {
-        if (biome.getPrecipitation() != Biome.Precipitation.NONE) {
-            if (biome.getBaseTemperature() >= 0.15F) {
+    private static void spawnParticle(ClientLevel level, Holder<Biome> biome, double x, double y, double z) {
+        Biome.BiomeCategory category = Biome.getBiomeCategory(biome);
+        if (biome.value().getPrecipitation() != Biome.Precipitation.NONE) {
+            if (biome.value().getBaseTemperature() >= 0.15F) {
                 if (ParticleRainClient.config.doRainParticles)
                     level.addParticle(ParticleRainClient.RAIN_DROP, x, y, z, 1, 1, 1);
             } else {
@@ -29,9 +31,9 @@ public final class WeatherParticleSpawner {
                     level.addParticle(ParticleRainClient.SNOW_FLAKE, x, y, z, 1, 1, 1);
             }
         } else if (ParticleRainClient.config.doSandParticles && level.getRandom().nextFloat() < 0.5F) {
-            if (biome.getBiomeCategory() == Biome.BiomeCategory.DESERT) {
+            if (category == Biome.BiomeCategory.DESERT) {
                 level.addParticle(ParticleRainClient.DESERT_DUST, x, y, z, ParticleRainClient.config.desertDustRed, ParticleRainClient.config.desertDustGreen, ParticleRainClient.config.desertDustBlue);
-            } else if (biome.getBiomeCategory() == Biome.BiomeCategory.MESA) {
+            } else if (category == Biome.BiomeCategory.MESA) {
                 level.addParticle(ParticleRainClient.DESERT_DUST, x, y, z, ParticleRainClient.config.mesaDustRed, ParticleRainClient.config.mesaDustGreen, ParticleRainClient.config.mesaDustBlue);
             }
         }
@@ -60,14 +62,15 @@ public final class WeatherParticleSpawner {
     }
 
     @Nullable
-    public static SoundEvent getBiomeSound(Biome biome, boolean above) {
-        if (biome.getPrecipitation() != Biome.Precipitation.NONE) {
-            if (biome.getBaseTemperature() >= 0.15F) {
+    public static SoundEvent getBiomeSound(Holder<Biome> biome, boolean above) {
+        Biome.BiomeCategory category = Biome.getBiomeCategory(biome);
+        if (biome.value().getPrecipitation() != Biome.Precipitation.NONE) {
+            if (biome.value().getBaseTemperature() >= 0.15F) {
                 return above ? SoundEvents.WEATHER_RAIN_ABOVE : SoundEvents.WEATHER_RAIN;
             } else {
                 return above ? ParticleRainClient.WEATHER_SNOW_ABOVE : ParticleRainClient.WEATHER_SNOW;
             }
-        } else if (biome.getBiomeCategory() == Biome.BiomeCategory.DESERT || biome.getBiomeCategory() == Biome.BiomeCategory.MESA) {
+        } else if (category == Biome.BiomeCategory.DESERT || category == Biome.BiomeCategory.MESA) {
             return above ? ParticleRainClient.WEATHER_SANDSTORM_ABOVE : ParticleRainClient.WEATHER_SANDSTORM;
         }
         return null;
